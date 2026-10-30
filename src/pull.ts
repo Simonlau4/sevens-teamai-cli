@@ -37,7 +37,7 @@ import { placesOf, placesRecordOf, placesUnmoved, recordPlaces, type PlacesRecor
 import { flatStemsOfRemoved, ruleFileExtensionForTool, ruleFormatForTool, ruleStemsForTool } from './resources/rule-format.js';
 import { AGENT_FILE_EXTENSIONS } from './resources/agent-format.js';
 import {
-  blockingEntries, deliveredSkillFiles, describeMembersDirLeft, forgetDelivered, holdsNonRegular, judgeCopy, judgeRemoval, keepsTrackedCopy, notTeamaisReason, openLedger, recordedUnder, reportKept,
+  blockingEntries, deliveredSkillFiles, describeMembersDirLeft, forgetDelivered, holdsNonRegular, isUneditedSkillCopy, judgeCopy, judgeRemoval, keepsTrackedCopy, notTeamaisReason, openLedger, recordedUnder, reportKept,
   type DeliveredHashes, type DeliveryLedger,
 } from './resources/delivered-copies.js';
 import { BUILTIN_SKILL_NAMES } from './builtin-skills.js';
@@ -86,6 +86,7 @@ import { mirrorLearnings } from './utils/learnings-mirror.js';
 import { withTimeout } from './utils/async.js';
 import { runDeclaredPostPull } from './post-pull.js';
 import { runTeamScript } from './team-scripts.js';
+import { SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PULL_HINT } from './sevens.js';
 import { describeWorkspaceChildren, readWorkspaceChildren, syncWorkspaceInstructionExcludes } from './workspace-children.js';
 import {
   applyDeliveredGitExclude, createDeliveryRecorder, deliveredUnion, describeForeign, describeUnreadableGitExcludeSetting,
@@ -2116,6 +2117,8 @@ async function pullForScope(
       workspaceHeldSkills = desired.held.length > 0;
       knownRepoSkillNames = new Set(desired.teamItems.map((i) => i.name));
       knownRepoSkillSources = new Map(desired.teamItems.map((i) => [i.name, [i.sourcePath]]));
+      // SEVENS: the desired set is empty (resolveDesiredSkills); Step 3b retires teamai's unedited copies.
+      if (SKILL_PILOT_MANAGES_SKILLS && desired.teamItems.length > 0) log.info(`[${scopeLabel}] ${SKILL_PILOT_PULL_HINT}`);
       // A workspace's copy may come from any member's source of the name (#913).
       for (const [name, sources] of desired.memberSources) {
         knownRepoSkillSources.set(name, [...new Set([...knownRepoSkillSources.get(name) ?? [], ...sources])]);
@@ -2283,7 +2286,9 @@ async function pullForScope(
         // Same data-safety gate as cleanupInactiveNamespaceSkills: never delete a
         // deployed skill that differs from its team-repo source (local edits or
         // unpushed files). Keep + warn instead of silently destroying work.
-        if (!await safeToRemoveAgainstAny(skillDir, knownRepoSkillSources?.get(dir))) {
+        // SEVENS: a copy the delivery record shows unedited goes too, though the team changed its source since.
+        if (!await safeToRemoveAgainstAny(skillDir, knownRepoSkillSources?.get(dir))
+          && !(SKILL_PILOT_MANAGES_SKILLS && ledger.previous !== undefined && await isUneditedSkillCopy(ledger.previous, skillDir))) {
           warnOnce(`[${scopeLabel}] Kept skill "${dir}" (${tool}): it has local changes or unpushed files not in the team repo (or could not be verified). Push or back them up, then delete it manually.`);
           continue;
         }

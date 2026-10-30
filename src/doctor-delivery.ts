@@ -33,6 +33,7 @@ import { declaredSecretKeys } from './resources/secrets.js';
 import { isReservedTeamEnvKey } from './env-reserved.js';
 import { skillsGuardBase } from './builtin-skills.js';
 import { findSkillDirectoryBlock, describeSkippedSkillDirectory } from './resources/skills.js';
+import { SKILL_PILOT_DOCTOR_CHECK, SKILL_PILOT_MANAGES_SKILLS } from './sevens.js';
 
 /**
  * The checks that verify the payload rather than the plumbing: what each tool
@@ -368,6 +369,8 @@ async function writableSkillLocations(ctx: DoctorContext): Promise<{ tool: strin
  * whether the tool reads the directory at all, when its reads are known.
  */
 export async function buildSkillDirChecks(ctx: DoctorContext): Promise<Check[]> {
+  // SEVENS: teamai writes no skills, so its skills directories owe nothing; Skill Pilot checks its own.
+  if (SKILL_PILOT_MANAGES_SKILLS) return [{ name: SKILL_PILOT_DOCTOR_CHECK, source: 'local', check: async () => true, fix: '' }];
   const located = await writableSkillLocations(ctx);
   if (located.length === 0) return [];
   const { checkoutRecordKey } = await import('./pull.js');

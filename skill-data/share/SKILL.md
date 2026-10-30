@@ -57,10 +57,12 @@ teamai contribute --file /tmp/session-summary.md --title "Debugging K8s pod star
 
 ## Publishing a reusable skill instead
 
+<!-- SEVENS: skills are listed in Skill Pilot, not pushed with teamai (FORK.md). -->
 A member asking to publish a skill ("share this xxx skill with my team") is a
-different flow, and it does not need recall: it lives in the `core` skill, at
-`"$(teamai skill path core)/references/contribute-member.md"`. This file
-is for turning a *session* into a learning.
+different flow, and it does not need recall or teamai: this team lists skills in
+Skill Pilot. Tell the user to open the Skill Pilot dashboard (`skill-pilot ui`)
+and list it from its team page. This file is for turning a *session* into a
+learning.
 
 ## References
 

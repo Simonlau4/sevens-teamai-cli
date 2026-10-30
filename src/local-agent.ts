@@ -120,6 +120,7 @@ import { blockingEntries, contentHash, deliveredSkillFiles, describeMembersDirLe
 import { skillOrigin, withSkillFrontmatter } from './resources/skills.js';
 import { hookSettingsFile, installOf, locate, ownOf, writable, type FilePlace } from './locate.js';
 import { acquireLock, releaseLock } from './update.js';
+import { SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PULL_HINT } from './sevens.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -2309,6 +2310,8 @@ async function installDownloadedResource(input: {
     const recorded = getManifestScope(await loadManifest(), input.scope, input.workspacePath)[manifestKind(input.kind)][input.slug];
 
     if (input.kind === 'skill') {
+      // SEVENS: Skill Pilot installs skills; the HTTP channel's install_skill fails with where to go instead.
+      if (SKILL_PILOT_MANAGES_SKILLS) throw new Error(SKILL_PILOT_PULL_HINT);
       const extractDir = await extractZip(downloadedPath);
       const skillRoot = await findSkillRoot(extractDir);
       skillDirName = await resolveSkillDirName(skillRoot, input.slug);

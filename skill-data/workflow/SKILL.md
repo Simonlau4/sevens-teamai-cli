@@ -11,7 +11,7 @@ You orchestrate. You run the literal commands the CLI prints, and you keep the p
 
 ## Start
 
-Run `teamai workflow start --describe <name> --driver skill` with the workflow name from the skill that sent you. Where this machine runs teamai through `npx teamai-cli`, use that in its place; every literal the CLI prints after this already does.
+Run `teamai workflow start --describe <name> --driver skill` with the workflow name from the skill that sent you. <!-- SEVENS: `npx teamai-cli` would run upstream's package from npm, so it is never a stand-in here. -->
 
 Act on `data.describe.ask.kind`:
 

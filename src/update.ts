@@ -5,8 +5,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fse from 'fs-extra';
+// SEVENS: Reuse semver to validate release tags and order fork prereleases.
+import semver from 'semver';
 import { loadState, saveState, loadLocalConfig, loadTeamConfig } from './config.js';
 import { resolveEffectiveUpdatePolicy } from './update-policy.js';
+// SEVENS: Keep self-updates on the fork instead of the upstream npm package.
+import { SEVENS_REPO as FORK_REPO } from './sevens.js';
 import { resolveTeamaiEntryScript } from './builtin-hooks.js';
 import { log } from './utils/logger.js';
 import { expandHome, ensureDir } from './utils/fs.js';
@@ -119,30 +123,24 @@ function resolveInstallPrefix(): { prefix: string; global: boolean } | null {
 }
 
 /**
- * Fetch the latest version from the npm registry
+ * Fetch the latest version from the fork's GitHub releases.
  * Returns null on any error (timeout, network, etc.)
- *
- * Defaults to the registry resolved from the currently installed package name.
  */
 export async function fetchLatestVersion(
-  registry?: string,
   timeout: number = VERSION_CHECK_TIMEOUT,
 ): Promise<string | null> {
-  const pkgName = getCurrentPackageName();
-  const resolvedRegistry = registry ?? resolveRegistryForPackage(pkgName);
   try {
-    // Async execFile so the hook dispatcher's event loop is not blocked while
-    // the registry is queried — a synchronous execSync here would freeze all
-    // sibling Stop handlers for up to `timeout` ms.
-    const npm = resolveNpmCommand();
-    const { stdout } = await execFileAsync(
-      npm.cmd,
-      [...npm.args, 'view', pkgName, 'version', `--registry=${resolvedRegistry}`],
-      { timeout, encoding: 'utf-8', windowsHide: true },
-    );
-    const version = stdout.trim();
-    if (!version) return null;
-    return version;
+    // SEVENS: Query public fork releases without credentials or an npm registry override.
+    const response = await fetch(`https://api.github.com/repos/${FORK_REPO}/releases/latest`, {
+      method: 'GET',
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'teamai-cli' },
+      signal: AbortSignal.timeout(timeout),
+    });
+    if (!response.ok) throw new Error(`GitHub release request failed: HTTP ${response.status}`);
+    const release = await response.json() as { tag_name?: unknown } | null;
+    if (typeof release?.tag_name !== 'string') return null;
+    const version = release.tag_name.replace(/^v/, '');
+    return semver.valid(version) ? version : null;
   } catch (e) {
     log.error(`Version check failed: ${(e as Error).message}`);
     return null;
@@ -172,6 +170,8 @@ export function compareVersions(a: string, b: string): number {
   // Numeric cores are equal — prerelease is lower than release (semver §11)
   if (preA && !preB) return -1;
   if (!preA && preB) return 1;
+  // SEVENS: Compare dot-separated prereleases numerically and lexically per semver section 11.
+  if (preA && preB) return semver.compare(a, b);
   return 0;
 }
 
@@ -649,7 +649,7 @@ export async function checkForUpdate(options?: { force?: boolean; dryRun?: boole
     return { available: false, current, latest: current };
   }
 
-  // Fetch latest version from registry
+  // SEVENS: Refresh the existing cache from the fork release feed.
   const home = getTeamaiHomeDir();
   const installed = fs.existsSync(home);
   const latest = await fetchLatestVersion();
@@ -703,7 +703,8 @@ export async function doUpdate(): Promise<void> {
   // Refuse unsupported install layouts before prompting, so nobody confirms
   // an update that is then skipped.
   const pkgName = getCurrentPackageName();
-  const registry = resolveRegistryForPackage(pkgName);
+  // SEVENS: Install only the npm pack asset attached to the selected fork release.
+  const tarballUrl = `https://github.com/${FORK_REPO}/releases/download/v${result.latest}/${pkgName}-${result.latest}.tgz`;
   const target = resolveInstallPrefix();
   if (!target) {
     // A prefix-less `npm install -g` would land in npm's default global
@@ -715,7 +716,8 @@ export async function doUpdate(): Promise<void> {
       `Self-update skipped: teamai is running from ${root}, which is not an npm install ` +
       'it can update in place (for example an `npm link` checkout). For a checkout, pull ' +
       'and rebuild it; to switch to the published package, run ' +
-      `"npm install -g ${pkgName} --registry=${registry}".`;
+      // SEVENS: Manual migration must use the same fork tarball as self-update.
+      `"npm install -g ${tarballUrl}".`;
     log.warn(message);
     log.persist(message);
     return;
@@ -761,9 +763,9 @@ export async function doUpdate(): Promise<void> {
       npm.cmd,
       [
         ...npm.args,
-        'install', '-g', pkgName,
+        // SEVENS: Pin the fork tarball while leaving dependency registry selection to npm.
+        'install', '-g', tarballUrl,
         `--prefix=${target.prefix}`,
-        `--registry=${registry}`,
       ],
       { timeout: INSTALL_TIMEOUT, windowsHide: true },
     );

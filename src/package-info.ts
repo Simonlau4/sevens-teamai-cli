@@ -33,13 +33,14 @@ export function getCurrentVersion(): string {
  * Get the currently installed CLI package name from package.json.
  *
  * Used to decide:
- *  - which npm registry to query (public npm vs tnpm)
+ *  - the install directory and release tarball filename
  *  - the default git provider fallback when users pass a bare `owner/repo`
  *
- * At publish time the internal tnpm pipeline rewrites the name to
+ * The upstream internal tnpm pipeline rewrites the name to
  * `@tencent/teamai-cli` (see `.coding-ci.yaml`), so reading it at runtime
  * is a reliable signal of which distribution channel the user installed from.
  */
 export function getCurrentPackageName(): string {
+  // SEVENS: Read the renamed package so install paths and release assets match the fork.
   return loadPackageJson().name;
 }

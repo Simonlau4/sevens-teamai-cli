@@ -17,7 +17,8 @@ import {
 import { getUserHome } from './utils/home.js';
 import { packagedSkillRoots } from './skill-content.js';
 import { PACKAGED_SKILL_DIGESTS } from './packaged-skill-digests.js';
-import { keepsTrackedCopy } from './resources/delivered-copies.js';
+import { holdsNonRegular, keepsTrackedCopy } from './resources/delivered-copies.js';
+import { reachedThroughLink, SKILL_PILOT_MANAGES_SKILLS, UPSTREAM_STUB_DIGESTS } from './sevens.js';
 import type { DeliveryRecorder } from './git-exclude-delivered.js';
 
 // ─── Built-in skills deployment ──────────────────────────
@@ -121,6 +122,8 @@ export async function ownedSkillFiles(skillName: string, paths?: readonly string
       digests.add(packagedSkillDigest(await fs.promises.readFile(stubPath)));
       owned.set('SKILL.md', digests);
     }
+    // SEVENS: the stubs upstream releases deployed, which the fork's own stub no longer matches.
+    if (SKILL_PILOT_MANAGES_SKILLS) owned.set('SKILL.md', new Set([...owned.get('SKILL.md') ?? [], ...UPSTREAM_STUB_DIGESTS]));
   }
   return owned;
 }
@@ -130,6 +133,15 @@ async function isOwnedFile(file: string, relative: string, owned: OwnedSkillFile
   const digests = owned.get(relative);
   if (!digests) return false;
   return digests.has(packagedSkillDigest(await fs.promises.readFile(file)));
+}
+
+/** SEVENS: whether every file in `dir` is one a release shipped there, or the bytecode of such a script. */
+async function holdsOnlyOwnedFiles(dir: string, owned: OwnedSkillFiles): Promise<boolean> {
+  if (await holdsNonRegular(dir)) return false;
+  const files = await walkFiles(dir);
+  const proven = new Set<string>();
+  for (const file of files) if (await isOwnedFile(path.join(dir, file), file, owned)) proven.add(file);
+  return files.every((file) => proven.has(file) || isDerivedArtifact(file, proven));
 }
 
 /**
@@ -417,6 +429,16 @@ export async function pruneLegacyBuiltinSkills(
     for (const root of skillRoots) {
       const dir = path.join(root, legacyName);
       if (!await pathExists(dir)) continue;
+      // SEVENS: a copy reached through a link is Skill Pilot's (or the member's): left alone, without a
+      // line every pull. One holding anything a release did not ship is the member's: kept whole, so its
+      // SKILL.md stays and the skill is still found, rather than pruned down to the member's files.
+      if (SKILL_PILOT_MANAGES_SKILLS) {
+        if (await reachedThroughLink(guardBase, dir)) continue;
+        if (!await holdsOnlyOwnedFiles(dir, await ownedSkillFiles(legacyName))) {
+          warnOnce(`Kept "${legacyName}" (${tool}): ${dir} holds files TeamAI did not put there, so it stays as it is. Skill Pilot installs the teamai skill; delete this copy once you no longer need it.`);
+          continue;
+        }
+      }
       try {
         const backupDir = skillBackupDir(guardBase, tool, path.relative(guardBase, root), legacyName);
         const result = await removeOwnedFiles(dir, await ownedSkillFiles(legacyName), guardBase, backupDir);
@@ -545,6 +567,19 @@ export async function deployBuiltinSkills(
 ): Promise<number> {
   const builtinDir = packagedSkillRoots().deployRoot;
   const skillNames = await packagedBuiltinSkillNames(builtinDir);
+  // SEVENS: Skill Pilot distributes the teamai skill too. Deploy none; retire the copies
+  // earlier pulls wrote, by the legacy prune's rule: only files a release shipped go, and a
+  // file of the member's keeps its directory. A dry run touches nothing.
+  if (SKILL_PILOT_MANAGES_SKILLS) {
+    if (options?.dryRun) return 0;
+    const retired = new Set([...LEGACY_BUILTIN_SKILL_NAMES, ...skillNames]);
+    for (const [tool, toolPath] of Object.entries(scopedToolPaths(teamConfig, localConfig))) {
+      if (!toolPath.skills || isAgentExcluded(localConfig, tool)) continue;
+      const target = await builtinSkillsTarget(tool, teamConfig, localConfig);
+      if (target) await pruneLegacyBuiltinSkills(tool, target, retired);
+    }
+    return 0;
+  }
   let deployed = 0;
 
   const toolPaths = scopedToolPaths(teamConfig, localConfig);

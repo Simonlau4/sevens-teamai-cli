@@ -11,14 +11,14 @@ description: >-
   after a friction reminder. Triggers include "set up teamai", "join the team repo", "sync team
   skills", "team wiki", "share what I learned", and running /teamai. Talking about a team needs no
   skill; operating on what the team shares does.
-allowed-tools: Bash(teamai skill:*), Bash(npx teamai-cli skill:*), Bash(teamai workflow start --describe:*), Bash(teamai workflow next:*), Bash(teamai workflow report:*), Bash(teamai workflow respond:*), Bash(npx teamai-cli workflow start --describe:*), Bash(npx teamai-cli workflow next:*), Bash(npx teamai-cli workflow report:*), Bash(npx teamai-cli workflow respond:*)
+allowed-tools: Bash(teamai skill:*), Bash(teamai workflow start --describe:*), Bash(teamai workflow next:*), Bash(teamai workflow report:*), Bash(teamai workflow respond:*)
 ---
 
 # teamai
 
 Make every team AI native — one shared foundation for the skills, rules, docs and env a team works with.
 
-Install: `npm i -g teamai-cli@latest` (Node.js >= 20). If `teamai skill get` is not recognised, the installed CLI predates it; upgrade the same way.
+Install: `npm install -g https://github.com/Simonlau4/sevens-teamai-cli/releases/latest/download/sevens-teamai-cli.tgz` (Node.js >= 20; the SEVENS build of TeamAI, never `teamai-cli` from npm). If `teamai skill get` is not recognised, the installed CLI predates it; upgrade the same way.
 
 ## Start here
 

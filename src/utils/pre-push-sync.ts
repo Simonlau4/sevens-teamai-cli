@@ -21,6 +21,7 @@ import { EXCLUDED_RULE_NAMES } from '../builtin-rules.js';
 import { log } from './logger.js';
 import { placedResourcePath } from '../push-namespaces.js';
 import { recordDelivered, type DeliveredHashes } from '../resources/delivered-copies.js';
+import { SKILL_PILOT_MANAGES_SKILLS } from '../sevens.js';
 
 const CONTRIBUTORS_FILE = 'CONTRIBUTORS';
 
@@ -210,6 +211,8 @@ async function syncSkillsToLocal(
   bases: readonly string[],
   delivered: DeliveredHashes | undefined,
 ): Promise<void> {
+  // SEVENS: skills are Skill Pilot's; the pre-push sync writes none.
+  if (SKILL_PILOT_MANAGES_SKILLS) return;
   const teamSkillsDir = path.join(repoPath, 'skills');
   if (!await pathExists(teamSkillsDir)) return;
 

@@ -113,7 +113,7 @@ it does not prove the knowledge document is correct.
 
 ```bash
 teamai pull        # Sync team resources into local AI tools now
-teamai push        # Publish your local skills/rules/docs to the team
+teamai push        # Publish your local rules/docs to the team (skills: Skill Pilot, see contribute-member.md)
 teamai status      # Show local vs team differences
 teamai doctor      # Diagnose configuration and hook problems
 teamai list        # List resources (skills|rules|docs|env|agents|hooks|mcp)

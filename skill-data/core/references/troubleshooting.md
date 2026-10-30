@@ -400,7 +400,9 @@ built-in and enterprise plugins support both OpenCode 1.18.23 (`server`) and V2
 - Re-run the failing command with `-v` / `--verbose` for detail.
 - `teamai status` shows exactly how local differs from the team repo.
 - Report unexpected behavior at https://github.com/Tencent/teamai-cli/issues
-  with the agent name, platform, and the step that failed.
+  with the agent name, platform, and the step that failed. Anything about the
+  SEVENS build (install, update, skills left to Skill Pilot) goes to
+  https://github.com/Simonlau4/sevens-teamai-cli/issues instead.
 
 ## "Pull left an instruction file unchanged"
 

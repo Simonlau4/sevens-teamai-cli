@@ -24,7 +24,7 @@ flow — see `{SKILL_DIR}/references/setup-admin.md` — not this one.)
 ## Step 1 — Install and verify
 
 ```bash
-npm install -g teamai-cli
+npm install -g https://github.com/Simonlau4/sevens-teamai-cli/releases/latest/download/sevens-teamai-cli.tgz
 teamai --version
 ```
 
@@ -181,8 +181,8 @@ Summarize the outcome **in the user's own language** (global rule 1). Cover:
 3. **They can also contribute a skill — just ask in plain language.** A member does
    not need to be an admin to publish a skill. They tell TeamAI something like
    *"share this xxx skill with my team"*, in their own language, and you
-   run the publish for them (see `"$(teamai skill path core)/references/contribute-member.md"`;
-   it needs no recall).
+   walk them through it: this team lists skills in Skill Pilot (see
+   `"$(teamai skill path core)/references/contribute-member.md"`; it needs no recall).
 4. **How to leave — via the skill, not raw commands.** They can remove TeamAI any
    time by re-invoking the skill; you'll run it for them:
    `/teamai Uninstall TeamAI` (in their language; the `/teamai` prefix stays as-is).

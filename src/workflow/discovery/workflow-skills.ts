@@ -14,6 +14,7 @@ import { warnOnce } from '../../utils/warn-once.js';
 import { listCachedWorkflows, loadCachedWorkflow } from '../cache.js';
 import { generatedSkillAt, readGenerated } from './generated-marker.js';
 import { renderWorkflowSkill, type AdvertisedWorkflow } from './render.js';
+import { SKILL_PILOT_MANAGES_SKILLS } from '../../sevens.js';
 
 /**
  * Every cached `invoke: allow` or `ask` workflow, each with its alias only when the alias starts it. The cache is what
@@ -145,7 +146,9 @@ export async function deployWorkflowSkills({ teamConfig, localConfig, recorder }
   recorder?: DeliveryRecorder;
 }): Promise<void> {
   try {
-    const { placements, roots } = await plan(teamConfig, localConfig);
+    const { placements: planned, roots } = await plan(teamConfig, localConfig);
+    // SEVENS: a workflow skill is a skill too: none is placed, so the sweep below retires each unedited one.
+    const placements = SKILL_PILOT_MANAGES_SKILLS ? [] : planned;
     const placed = new Set(placements.map(({ dir }) => dir));
     for (const placement of placements) {
       if (await place(placement)) recorder?.report(WRITER, path.join(placement.dir, 'SKILL.md'));
@@ -166,6 +169,8 @@ export async function deployWorkflowSkills({ teamConfig, localConfig, recorder }
 
 /** For `teamai doctor`: each generated skill a skill of the team's or the member's stands in for. Writes nothing. */
 export async function shadowedWorkflowSkills({ teamConfig, localConfig }: { teamConfig: TeamaiConfig; localConfig: LocalConfig }): Promise<string[]> {
+  // SEVENS: none is placed (deployWorkflowSkills), so none is shadowed.
+  if (SKILL_PILOT_MANAGES_SKILLS) return [];
   const lines: string[] = [];
   for (const placement of (await plan(teamConfig, localConfig)).placements) {
     if (await findSkillDirectoryBlock(placement.guardBase, placement.dir) || !await pathExists(placement.dir)) continue;

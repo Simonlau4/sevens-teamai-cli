@@ -1,5 +1,7 @@
 # Scenario: Member — publish a reusable skill
 
+<!-- SEVENS: skills are listed in Skill Pilot, not pushed with teamai (FORK.md). -->
+
 Goal: the user turns something they built into team knowledge everyone can pull.
 **Any member can do this — you do not need to be an admin.** The usual entry point
 is the user just asking in plain language, e.g. *"share this xxx skill with my
@@ -20,8 +22,8 @@ thing now.
   dedicated `share` workflow (`teamai skill get share`) takes over (it summarizes the
   session and runs `teamai contribute`). The user does not come through this flow
   for it. (Step A below is only a manual fallback for while recall is off.)
-- **A reusable skill** (a `SKILL.md` others invoke) → author the skill, then
-  `teamai push` (Step B — the main purpose of this reference).
+- **A reusable skill** (a `SKILL.md` others invoke) → it is listed in Skill
+  Pilot, not pushed with teamai (Step B).
 
 ## Step A — Contribute a learning by hand (fallback only)
 
@@ -65,75 +67,22 @@ The doc lands in the team's `learnings/` and appears for teammates on their next
 
 ## Step B — Contribute a reusable skill
 
-1. Create the skill directory with a `SKILL.md`:
+This team shares skills through Skill Pilot, not the team repo: `teamai push`
+never sends a skill, and `teamai push --skill` stops with a pointer to Skill
+Pilot. Do not copy a skill into the team repo's `skills/` either; pull does not
+deliver it.
 
-   ```
-   skills/my-skill/SKILL.md
-   ```
-
-   Minimal frontmatter:
-
-   ```markdown
-   ---
-   name: my-skill
-   description: "One line — what it does and when to use it"
-   ---
-
-   # My Skill
-
-   Step-by-step instructions the AI should follow.
-   ```
-
-2. Publish it:
-
-   ```bash
-   teamai push --skill skills/my-skill        # one skill
-   # or
-   teamai push                                # review and push everything
-   ```
-
-   To publish into a specific role namespace: `teamai push --skill <path> --role <id>`.
-   `--skill <path>` selects that exact local copy after resolving `~` and
-   symlinks; a same-named copy in another tool is never a substitute.
-   `--role <ns>` / `--project <id>` place every new resource, not only skills: a
-   new rule and a new agent land in that namespace too (a project resolves each
-   from its own axis — `knowledge` for rules, `agents` for agents). Without one,
-   the role and the active projects decide; with neither, a new rule or agent
-   stays at the shared root and reaches the whole team. When an active project
-   cannot be resolved (not in `manifest/projects.yaml`, or that file is
-   missing), push stops with exit 2 until you fix it or pass `--role` /
-   `--project`, or explicitly choose the shared root with `--shared`. This flag
-   places new resources at the shared root even when namespaces exist and
-   cannot combine with `--role` or `--project`. Shared-root skills retain the
-   existing tag-subscription delivery rules. An edit of a skill, rule or agent you received from a namespace
-   goes back to that namespace, even when it replaces a shared item of the same
-   name; the shared one is left as it is. A delivered skill copy is pushed only
-   when its recorded version matches exactly one current team skill, using that
-   path's history since its latest creation after deletion. `--role`, `--project`
-   and `--skill` do not establish an origin. If no unique origin is proven, push
-   skips the edit with a warning; copy it under a new name to send it as a new
-   skill. Use `--branch <name>` when a new push must target a
-   specific branch; an existing open PR keeps its recorded branch. TeamAI refuses
-   to reset a team-repo clone with user changes, so commit or stash unrelated
-   modified, staged, untracked, or conflicted files before retrying.
-
-   In single-repo mode, a skill or rule under `.teamai/` that matches an older
-   version of the team's file, as it does when the branch is behind the default
-   branch, is skipped with a warning that it "is an older version of" that file:
-   pushing it would revert a teammate's update. To publish an edit of it, bring
-   the current version in first (`git fetch origin && git merge origin/<default>`,
-   or copy the team's current file over it), redo the edit on top, and push again.
-   Any other team file under `.teamai/` that the default branch changed since
-   your branch left it is left out of the push when you did not edit it. A file
-   you edited too stops the push with exit 2; merge the default branch and push
-   again. Skills are checked as whole directories, including reference files
-   and deletions: a skill edit stops when it would replace any changed upstream
-   file with a stale local copy, even if you edited a different file.
+1. Make sure the skill is a directory with a `SKILL.md` whose frontmatter has a
+   `name` matching the directory and a one-line `description`.
+2. Tell the user to publish it themselves in the Skill Pilot dashboard
+   (`skill-pilot ui` opens it): its team page → the button to list a skill.
+   Teammates install it from the same team page. The dashboard's labels are
+   Chinese; `teamai push --skill <path>` prints them.
 
 ## After contributing
 
-- Confirm it landed: `teamai list skills` (or `teamai status`).
-- Teammates receive it automatically on their next session, or via `teamai pull`.
+- A learning: teammates receive it on their next session, or via `teamai pull`.
+- A skill: it shows on the Skill Pilot team page once listed.
 
 Before listing rules, `push` refreshes copies whose bodies still match a recorded
 sync revision. The header teamai generates for a tool's own rules format

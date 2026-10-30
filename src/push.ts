@@ -35,6 +35,7 @@ import {
 import { askQuestion, askSelection, isInteractive } from './utils/prompt.js';
 import { pathExists, pruneEmptyDirs, readFileSafe, writeFile } from './utils/fs.js';
 import { brokenTeamProfileFiles } from './models/profile.js';
+import { SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PUSH_HINT } from './sevens.js';
 
 /**
  * Types whose `scanLocalForPush` source is the tool's own file (outside the
@@ -923,6 +924,12 @@ export async function push(
    */
   result?: { completed: boolean },
 ): Promise<void> {
+  // SEVENS: a skill is listed in Skill Pilot, never pushed to the team repo.
+  if (SKILL_PILOT_MANAGES_SKILLS && options.skill) {
+    log.error(SKILL_PILOT_PUSH_HINT);
+    process.exitCode = 1;
+    return;
+  }
   if (options.shared && (options.role || options.project)) {
     log.error('Use --shared without --role or --project.');
     process.exitCode = 2;

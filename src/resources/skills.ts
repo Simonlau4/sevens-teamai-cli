@@ -19,6 +19,7 @@ import { deliversEveryNamespace } from '../resource-namespaces.js';
 import { deliveredMembers } from '../workspace-children.js';
 import { assertSafeFallbackNamespaces } from '../manifest-schema.js';
 import { assertWithinRoot, resolveReal } from '../utils/path-safety.js';
+import { reachedThroughLink, SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PUSH_HINT } from '../sevens.js';
 import { openPrDestinations, recordedNamespace } from '../utils/pending-push.js';
 import { splitFrontmatter, stringifyFrontmatter } from '../utils/frontmatter.js';
 import {
@@ -111,7 +112,14 @@ export function describeSkillDirectoryBlock(block: SkillDirectoryBlock): string 
 
 /** Whether a team-skill delete may reach `skillDir` by the delivery rule; warns and keeps it when not. */
 export async function mayDeleteSkillCopy(localConfig: LocalConfig, skillDir: string): Promise<boolean> {
-  if (await allowsSkillDirectory(await skillsGuardBase(resolveBaseDir(localConfig), path.dirname(skillDir)), skillDir)) return true;
+  const base = await skillsGuardBase(resolveBaseDir(localConfig), path.dirname(skillDir));
+  // SEVENS: nothing reached through a link is deleted: a skills root linked into Skill Pilot's store
+  // passes the delivery rule below, and the store's copy would go with it.
+  if (SKILL_PILOT_MANAGES_SKILLS && await reachedThroughLink(base, skillDir)) {
+    debugOnce(`Kept ${skillDir}: it is reached through a link (Skill Pilot's or the member's)`);
+    return false;
+  }
+  if (await allowsSkillDirectory(base, skillDir)) return true;
   warnOnce(describeOutsideSkillLink(skillDir));
   return false;
 }
@@ -943,6 +951,15 @@ export class SkillsHandler extends ResourceHandler {
    * to enforce role-based access control.
    */
   async scanLocalForPush(
+    teamConfig: TeamaiConfig, localConfig: LocalConfig, options?: ScanForPushOptions,
+  ): Promise<ResourceItem[]> {
+    if (!SKILL_PILOT_MANAGES_SKILLS) return this.scanCopiesForPush(teamConfig, localConfig, options);
+    // SEVENS: no local skill goes to the team repo. A copy push would have sent gets one line saying where it goes instead.
+    if ((await this.scanCopiesForPush(teamConfig, localConfig, options)).some((item) => !('skipReason' in item))) warnOnce(SKILL_PILOT_PUSH_HINT);
+    return [];
+  }
+
+  private async scanCopiesForPush(
     teamConfig: TeamaiConfig, localConfig: LocalConfig, options?: ScanForPushOptions,
   ): Promise<ResourceItem[]> {
     const team = await readTeamSkillIndex(localConfig.repo.localPath, await resolvePushSkillNamespaces(localConfig));

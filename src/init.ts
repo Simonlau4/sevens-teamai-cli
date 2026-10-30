@@ -111,6 +111,7 @@ import {
   KNOWN_AGENTS,
 } from './known-agents.js';
 import { TOOLS } from './tools.js';
+import { SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PULL_HINT } from './sevens.js';
 import { describeToolHomeChange, recordToolHomes } from './tool-home-record.js';
 
 function validAgentIds(teamConfig?: TeamaiConfig | null): string[] {
@@ -2452,7 +2453,10 @@ export async function init(options: GlobalOptions & {
   }
 
   log.success('teamai initialized successfully!');
-  if (stubDeployed > 0) {
+  // SEVENS: no stub is deployed by design, so neither line below applies.
+  if (SKILL_PILOT_MANAGES_SKILLS) {
+    log.info(SKILL_PILOT_PULL_HINT);
+  } else if (stubDeployed > 0) {
     log.info('The built-in teamai skill is ready in your IDE; it loads its workflows with `teamai skill get`.');
   } else {
     log.warn('The built-in teamai skill was not deployed to any AI tool, so agents cannot find TeamAI yet. The reason is printed above or recorded in ~/.teamai/debug.log; the usual one is that none of the selected tools is installed. Run `teamai pull` once it is fixed.');

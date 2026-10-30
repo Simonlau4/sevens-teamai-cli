@@ -3,19 +3,21 @@
 The user already ran `teamai init`. Do NOT re-init or re-register. Before changing
 anything, say what you are about to change. Pick the task below that matches.
 
-Day-to-day management is mostly **publishing and updating team resources — skills,
-rules, MCP servers, and env** — plus inviting members and checking the dashboard.
+Day-to-day management is mostly **publishing and updating team resources — rules,
+docs, MCP servers, and env** — plus inviting members and checking the dashboard.
+<!-- SEVENS: skills are listed in Skill Pilot, not pushed with teamai (FORK.md). -->
+Skills are not among them: this team lists and installs skills in Skill Pilot
+(`"$(teamai skill path core)/references/contribute-member.md"`, Step B).
 
-## Publish or update a skill / rule / doc
+## Publish or update a rule / doc
 
-The user (or you) creates or edits a skill, rule, or doc locally, then publishes it
+The user (or you) creates or edits a rule or doc locally, then publishes it
 to the team. The same `teamai push` handles both new resources and updates to
 existing ones:
 
 ```bash
 teamai push            # review the diff, then confirm
 teamai push --all      # push everything without per-item confirmation
-teamai push --skill <path>   # push one specific skill
 teamai push --branch <name> # use an explicit branch for a new push
 ```
 

@@ -23,6 +23,7 @@ import { deliveredMembers, unionMemberItems } from '../workspace-children.js';
 import { resolveAgentsForDirectory } from './agents.js';
 import { resolveDocsForDirectory } from './docs.js';
 import { getHandler } from './index.js';
+import { SKILL_PILOT_MANAGES_SKILLS } from '../sevens.js';
 
 export interface RolePullContext {
   activeNamespaces: ResourceNamespaces;
@@ -253,6 +254,19 @@ export type DesiredSkills = Extract<DesiredItems, { kind: 'resolved' }> & {
  * configured", not "not looked up yet".
  */
 export async function resolveDesiredSkills(
+  teamConfig: TeamaiConfig,
+  localConfig: LocalConfig,
+  roleContext: RolePullContext | null,
+): Promise<DesiredSkills | DeliveryConflict> {
+  const desired = await resolveTeamDesiredSkills(teamConfig, localConfig, roleContext);
+  // SEVENS: Skill Pilot delivers skills, so no member is owed one. `teamItems` stay: pull's
+  // sweep reads them to retire teamai's unedited copies, and to keep an edited one with a line.
+  return SKILL_PILOT_MANAGES_SKILLS && desired.kind === 'resolved'
+    ? { ...desired, items: [], overrides: [], held: [], memberSources: new Map() }
+    : desired;
+}
+
+async function resolveTeamDesiredSkills(
   teamConfig: TeamaiConfig,
   localConfig: LocalConfig,
   roleContext: RolePullContext | null,

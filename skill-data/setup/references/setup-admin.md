@@ -8,7 +8,7 @@ Run the commands yourself. Only stop to ask when a step says "ASK".
 ## Step 1 — Install and verify
 
 ```bash
-npm install -g teamai-cli
+npm install -g https://github.com/Simonlau4/sevens-teamai-cli/releases/latest/download/sevens-teamai-cli.tgz
 teamai --version
 ```
 

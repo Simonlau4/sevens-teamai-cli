@@ -320,7 +320,9 @@ describe('the shipped skill-data content', () => {
     // `teamai skill …` commands it asks for and the skill driver's calls that
     // cannot start a run (workflow-skill-literals.test.ts pins those). Everything
     // else a served workflow runs goes through the agent's own permission prompt.
-    expect(stub).toMatch(/^allowed-tools: Bash\(teamai skill:\*\), Bash\(npx teamai-cli skill:\*\), /m);
+    // SEVENS: no `npx teamai-cli`: npx would run upstream's package from npm.
+    expect(stub).toMatch(/^allowed-tools: Bash\(teamai skill:\*\), Bash\(teamai workflow start --describe:\*\), /m);
+    expect(stub).not.toContain('npx teamai-cli');
   });
 
   it('quotes {SKILL_DIR} and $(teamai skill path …) in every command it tells the agent to run', async () => {

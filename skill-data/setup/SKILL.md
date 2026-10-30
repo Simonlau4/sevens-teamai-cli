@@ -14,7 +14,7 @@ know Git** — never explain branches, commits or clones.
 
 ```bash
 node --version      # must be >= 20
-teamai --version    # install once with: npm install -g teamai-cli
+teamai --version    # install once with: npm install -g https://github.com/Simonlau4/sevens-teamai-cli/releases/latest/download/sevens-teamai-cli.tgz
 ```
 
 Then pick the flow. A user **setting up a new team** becomes its admin and creates

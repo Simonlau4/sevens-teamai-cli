@@ -172,7 +172,9 @@ describe('the files an agent reads', () => {
   it('the teamai stub pre-approves the skill commands and the skill driver calls, and nothing else', () => {
     // None of the workflow calls can start a run: `--describe` comes before the name.
     const calls = ['skill', 'workflow start --describe', 'workflow next', 'workflow report', 'workflow respond'];
-    expect([...stubPatterns()].sort()).toEqual(INVOCATIONS.flatMap((invocation) => calls.map((call) => `Bash(${invocation} ${call}:*)`)).sort());
+    // SEVENS: no `npx teamai-cli`: npx would run upstream's package from npm.
+    const invocations = INVOCATIONS.filter((invocation) => invocation !== 'npx teamai-cli');
+    expect([...stubPatterns()].sort()).toEqual(invocations.flatMap((invocation) => calls.map((call) => `Bash(${invocation} ${call}:*)`)).sort());
   });
 
   it('the workflow guide starts with the describe literal', () => {
