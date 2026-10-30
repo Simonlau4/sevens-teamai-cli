@@ -35,7 +35,7 @@ import {
 import { askQuestion, askSelection, isInteractive } from './utils/prompt.js';
 import { pathExists, pruneEmptyDirs, readFileSafe, writeFile } from './utils/fs.js';
 import { brokenTeamProfileFiles } from './models/profile.js';
-import { SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PUSH_HINT } from './sevens.js';
+import { reviewersOtherThan, SKILL_PILOT_MANAGES_SKILLS, SKILL_PILOT_PUSH_HINT } from './sevens.js';
 
 /**
  * Types whose `scanLocalForPush` source is the tool's own file (outside the
@@ -355,7 +355,7 @@ async function warnKeptCopiesTheTeamChanged(
  */
 async function createPrWithFallback(
   teamConfig: { repo: string; provider?: string; reviewers?: string[] },
-  localConfig: { repo: { remote: string; localPath: string }; provider?: string },
+  localConfig: { repo: { remote: string; localPath: string }; provider?: string; username?: string },
   branchName: string,
   title: string,
   description: string,
@@ -381,7 +381,8 @@ async function createPrWithFallback(
       target: targetBranch,
       title,
       description,
-      reviewers: teamConfig.reviewers?.length ? teamConfig.reviewers : undefined,
+      // SEVENS: GitHub refuses a review request from the PR's own author, so a listed reviewer's own push asks the others.
+      reviewers: reviewersOtherThan(teamConfig.reviewers, localConfig.username),
       cwd: localConfig.repo.localPath,
       spawnTimeoutMs: opts.spawnTimeoutMs,
     });

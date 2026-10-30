@@ -43,3 +43,9 @@ export async function reachedThroughLink(base: string, target: string): Promise<
   }
   return false;
 }
+
+/** The team's reviewers minus the PR's author (GitHub refuses that request), or undefined when none is left. */
+export function reviewersOtherThan(reviewers: readonly string[] | undefined, author: string | undefined): string[] | undefined {
+  const others = (reviewers ?? []).filter((reviewer) => reviewer.toLowerCase() !== author?.toLowerCase());
+  return others.length > 0 ? others : undefined;
+}

@@ -24,6 +24,7 @@
 | 7 | 工作流技能不放置，未编辑的旧副本由上游清理逻辑移除；doctor 不再报“被遮挡的工作流技能” | 工作流技能也是技能，团队目前用不上 | `src/workflow/discovery/workflow-skills.ts` |
 | 8 | push 前的预同步不再写技能 | 同上 | `src/utils/pre-push-sync.ts` |
 | 9 | `teamai push --skill` 直接退出（exit 1）并提示用 `skill-pilot team publish` 或看板上架；`push` / `push --all` 不再收集技能，发现本该推送的技能时提示一行 | 技能在 Skill Pilot 看板「团队」→「上架技能」上架 | `src/push.ts`、`src/resources/skills.ts` |
+| 9b | 提 PR 时从 `teamai.yaml` 的 `reviewers` 里去掉 PR 作者本人再请求审阅 | GitHub 不允许请作者审阅自己的 PR，审阅人自己推送时请求会失败 | `src/push.ts`、`src/sevens.ts`（`reviewersOtherThan`） |
 | 10 | doctor 的技能目录检查换成一条“技能由 Skill Pilot 管理” | TeamAI 不写技能，这些检查没有意义 | `src/doctor-delivery.ts` |
 | 11 | init 结束时提示技能由 Skill Pilot 管理，不再报“teamai 技能没投递” | 同上 | `src/init.ts` |
 | 11b | `--http` 模式（本地 agent）收到 `install_skill` 时报错并提示 Skill Pilot，不写技能 | 同上 | `src/local-agent.ts` |
