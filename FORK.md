@@ -6,6 +6,7 @@
 - 安装 / 手动升级：`npm install -g https://github.com/Simonlau4/sevens-teamai-cli/releases/latest/download/sevens-teamai-cli.tgz`
 - 不要装 npm 上的 `teamai-cli`：那是上游原版，会把技能重新投递进各工具。
 - 上游 LICENSE 与版权声明原样保留（MIT）。
+- 仓库默认分支保持 `sevens`：Skill Pilot 默认按默认分支给 `teamai` 技能检查更新，改回 `main` 会跟着上游原版走。
 
 ## 补丁清单
 
@@ -22,7 +23,7 @@
 | 6 | 补上上游 0.28.0–0.28.1 的 `teamai` 技能文件指纹（`UPSTREAM_STUB_DIGESTS`） | 上游靠“当前包里那份”识别自己的 stub；fork 改了这个文件，否则旧版投递的副本会被当成成员自己的、永远清不掉 | `src/sevens.ts`、`src/builtin-skills.ts` |
 | 7 | 工作流技能不放置，未编辑的旧副本由上游清理逻辑移除；doctor 不再报“被遮挡的工作流技能” | 工作流技能也是技能，团队目前用不上 | `src/workflow/discovery/workflow-skills.ts` |
 | 8 | push 前的预同步不再写技能 | 同上 | `src/utils/pre-push-sync.ts` |
-| 9 | `teamai push --skill` 直接退出（exit 1）并提示去 Skill Pilot；`push` / `push --all` 不再收集技能，发现本该推送的技能时提示一行 | 技能在 Skill Pilot 看板「团队」→「上架技能」上架 | `src/push.ts`、`src/resources/skills.ts` |
+| 9 | `teamai push --skill` 直接退出（exit 1）并提示用 `skill-pilot team publish` 或看板上架；`push` / `push --all` 不再收集技能，发现本该推送的技能时提示一行 | 技能在 Skill Pilot 看板「团队」→「上架技能」上架 | `src/push.ts`、`src/resources/skills.ts` |
 | 10 | doctor 的技能目录检查换成一条“技能由 Skill Pilot 管理” | TeamAI 不写技能，这些检查没有意义 | `src/doctor-delivery.ts` |
 | 11 | init 结束时提示技能由 Skill Pilot 管理，不再报“teamai 技能没投递” | 同上 | `src/init.ts` |
 | 11b | `--http` 模式（本地 agent）收到 `install_skill` 时报错并提示 Skill Pilot，不写技能 | 同上 | `src/local-agent.ts` |
@@ -62,7 +63,7 @@ npm run build && npm test && npm run typecheck && npm run lint
 npm pack                                   # 生成 sevens-teamai-cli-0.28.1-sevens.1.tgz
 cp sevens-teamai-cli-0.28.1-sevens.1.tgz sevens-teamai-cli.tgz
 git commit -am "chore(release): 0.28.1-sevens.1" && git tag v0.28.1-sevens.1
-git push origin sevens v0.28.1-sevens.1        # 只推这一个 tag；--tags 会把上游的 tag 全推上去
+git push origin sevens v<版本>        # 只推这一个 tag；--tags 会把上游的 tag 全推上去
 gh release create v0.28.1-sevens.1 sevens-teamai-cli-0.28.1-sevens.1.tgz sevens-teamai-cli.tgz \
   --repo Simonlau4/sevens-teamai-cli --title v0.28.1-sevens.1 --notes "..."
 ```

@@ -22,9 +22,9 @@ export const UPSTREAM_STUB_DIGESTS: ReadonlySet<string> = new Set([
   '917433bc40d9b59cd5f209c1a5dd7c130f55ee0ff8d65a5fd685e2a5d0e1f490', // v0.28.0 – v0.28.1
 ]);
 
-export const SKILL_PILOT_PULL_HINT = '技能由 Skill Pilot 管理，请在 Skill Pilot「团队」页安装或上架。';
+export const SKILL_PILOT_PULL_HINT = '技能由 Skill Pilot 管理：用 skill-pilot team install <技能> 安装、skill-pilot team publish <技能> 上架，或在 Skill Pilot「团队」页操作。';
 
-export const SKILL_PILOT_PUSH_HINT = '技能不经 teamai push 提交到团队仓库，请在 Skill Pilot 看板「团队」→「上架技能」操作。';
+export const SKILL_PILOT_PUSH_HINT = '技能不经 teamai push 提交到团队仓库，请用 skill-pilot team publish <技能> 上架，或在 Skill Pilot 看板「团队」→「上架技能」操作。';
 
 export const SKILL_PILOT_DOCTOR_CHECK = '技能由 Skill Pilot 管理';
 

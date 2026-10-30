@@ -74,10 +74,17 @@ deliver it.
 
 1. Make sure the skill is a directory with a `SKILL.md` whose frontmatter has a
    `name` matching the directory and a one-line `description`.
-2. Tell the user to publish it themselves in the Skill Pilot dashboard
-   (`skill-pilot ui` opens it): its team page → the button to list a skill.
-   Teammates install it from the same team page. The dashboard's labels are
-   Chinese; `teamai push --skill <path>` prints them.
+2. Run `skill-pilot team publish <name>` without `--yes`: it only previews.
+   Show the user what it lists — the files to upload, any file blocked as a
+   possible secret, the skills it needs — and say that every teammate will see
+   it. Run the same command with `--yes` only after the user agrees in this
+   conversation. It lists only a skill Skill Pilot manages and assigns to an
+   agent; a skill folder it does not manage yet goes in first with
+   `skill-pilot install <folder> --agent <id>`, under the same preview-then-`--yes`
+   rule.
+3. Teammates install it with `skill-pilot team install <name> --agent <id>`.
+   With an older Skill Pilot that lacks these commands, the user does both from
+   the dashboard's team page (`skill-pilot ui`).
 
 ## After contributing
 
