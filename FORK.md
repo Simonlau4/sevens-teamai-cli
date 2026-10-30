@@ -62,7 +62,7 @@ npm run build && npm test && npm run typecheck && npm run lint
 npm pack                                   # 生成 sevens-teamai-cli-0.28.1-sevens.1.tgz
 cp sevens-teamai-cli-0.28.1-sevens.1.tgz sevens-teamai-cli.tgz
 git commit -am "chore(release): 0.28.1-sevens.1" && git tag v0.28.1-sevens.1
-git push origin sevens --tags
+git push origin sevens v0.28.1-sevens.1        # 只推这一个 tag；--tags 会把上游的 tag 全推上去
 gh release create v0.28.1-sevens.1 sevens-teamai-cli-0.28.1-sevens.1.tgz sevens-teamai-cli.tgz \
   --repo Simonlau4/sevens-teamai-cli --title v0.28.1-sevens.1 --notes "..."
 ```
